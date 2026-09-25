@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Letter Transition</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dangrek&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden}
+body{font-family:"Dangrek","Noto Sans Khmer",sans-serif;background:#080008;color:#fff}
+.scene,.letterScene,.sorryScene{position:fixed;inset:0;display:grid;place-items:center;
+background:radial-gradient(circle at 50% 48%,#ff149455,transparent 32%),
+linear-gradient(145deg,#080006,#26000f 52%,#72003f);overflow:hidden}
+.scene:before,.letterScene:before,.sorryScene:before{content:"";position:absolute;inset:0;
+background:radial-gradient(circle at 50% 48%,#ff149455,transparent 32%),
+linear-gradient(145deg,#080006,#26000f 52%,#72003f);z-index:0}
+.scene>.hearts,.letterScene>.hearts,.sorryScene>.hearts{position:absolute;inset:0;overflow:hidden;z-index:0}
+.scene>*:not(.hearts),.letterScene>*:not(.hearts),.sorryScene>*:not(.hearts){position:relative;z-index:1}
+.hearts{position:absolute;inset:0;overflow:hidden}.heart{position:absolute;color:#ff5bb7;
+text-shadow:0 0 14px #ff1494;animation:float linear infinite;opacity:0}
+@keyframes float{0%{transform:translateY(110vh) rotate(0);opacity:0}
+15%{opacity:.65}100%{transform:translateY(-15vh) rotate(35deg);opacity:0}}
+.count{position:fixed;inset:0;display:none;z-index:10;transition:opacity .24s ease}
+.start{text-align:center;z-index:3}.title{font-size:clamp(28px,5.5vw,65px);text-shadow:0 0 20px #ff1494;margin-bottom:28px}
+button{font-family:inherit;color:white;background:#ff149426;border:1px solid #ff70bd;border-radius:999px;
+padding:13px 42px;font-size:20px;cursor:pointer;box-shadow:0 0 28px #ff149455}
+.fade{opacity:0;transform:scale(.96);transition:.4s}
+.letterScene{position:fixed;inset:0;display:none;place-items:center;z-index:20;
+background:radial-gradient(circle at 50% 50%,#ff14943d,transparent 35%),linear-gradient(145deg,#080006,#3a001f 55%,#73003f)}
+.envelope{position:relative;width:min(88vw,480px);height:300px;cursor:pointer;filter:drop-shadow(0 20px 35px #0008)}
+.paper{position:absolute;left:7%;top:28px;width:86%;height:245px;background:#fff8fc;color:#4b1734;
+border-radius:8px;padding:30px 25px;z-index:1;transform:translateY(55px);transition:1s}
+.envelope.open .paper{transform:translateY(-95px);z-index:5}
+.paper p{font-size:clamp(19px,3.8vw,27px);line-height:1.8;margin:0;text-align:center}
+.body{position:absolute;left:0;right:0;bottom:0;height:230px;border-radius:10px;
+background:linear-gradient(145deg,#fbd9ea,#e88bb8);z-index:2}
+.flap{position:absolute;top:35px;left:0;width:100%;height:165px;clip-path:polygon(0 0,50% 75%,100% 0);
+background:#ffddec;z-index:4;transform-origin:top;transition:.9s}
+.envelope.open .flap{transform:rotateX(180deg);z-index:0}
+.seal{position:absolute;left:50%;bottom:85px;transform:translateX(-50%);z-index:6;width:62px;height:62px;
+border-radius:50%;display:grid;place-items:center;background:#d61b76;font-size:29px;box-shadow:0 0 25px #ff149488}
+.continue{margin-top:38px;display:none;padding:12px 48px}
+.letterOpen .continue{display:inline-block}
+
+.sorryScene{position:fixed;inset:0;display:none;place-items:center;z-index:30;text-align:center;
+background:radial-gradient(circle at 50% 48%,#ff149455,transparent 32%),linear-gradient(145deg,#080006,#26000f 52%,#72003f)}
+.sorryScene .subtitle{max-width:520px;margin:0 auto 30px;font-size:clamp(15px,2.4vw,19px);opacity:.85;line-height:1.7}
+.sorryScene .scriptTitle{font-size:clamp(30px,6vw,60px);text-shadow:0 0 20px #ff1494;margin-bottom:22px;min-height:1.3em}
+.sorryScene .letterText{max-width:720px;margin:0 auto 28px;font-size:clamp(18px,2.7vw,23px);line-height:2.0;padding:0 18px;text-align:left;opacity:0;transform:translateY(26px) scale(.85)}
+.sorryScene .letterText.pop{animation:popBlock .65s cubic-bezier(.2,1.4,.4,1) forwards}
+@keyframes popBlock{0%{opacity:0;transform:translateY(26px) scale(.8)}60%{opacity:1;transform:translateY(-6px) scale(1.04)}100%{opacity:1;transform:translateY(0) scale(1)}}
+.sorryScene button.secondary{background:transparent;border-color:#ff70bd88;box-shadow:none;opacity:.85;margin-left:14px}
+.sorryScene .choices{display:flex;gap:0;justify-content:center;flex-wrap:wrap;margin-top:10px}
+.catface{width:150px;height:140px;background:#fff8fc;border:5px solid #3a1626;border-radius:50% 50% 46% 46%;margin:10px auto 18px;position:relative}
+.catface:before,.catface:after{content:"";position:absolute;top:-20px;width:42px;height:42px;background:#fff8fc;border:5px solid #3a1626;border-radius:40% 60% 55% 45%}
+.catface:before{left:-4px}.catface:after{right:-4px}
+.eye{position:absolute;top:54px;width:13px;height:13px;background:#3a1626;border-radius:50%}
+.eye.l{left:38px}.eye.r{right:38px}
+.blush{position:absolute;top:78px;width:24px;height:13px;background:#ff9bc3;border-radius:50%;opacity:.8}
+.blush.l{left:18px}.blush.r{right:18px}
+.mouth{position:absolute;top:84px;left:50%;transform:translateX(-50%);width:14px;height:9px;border-bottom:4px solid #3a1626;border-radius:0 0 50% 50%}
+.tear{position:absolute;top:64px;width:7px;height:11px;background:#7fc4ff;border-radius:50% 50% 50% 0;transform:rotate(45deg)}
+.tear.l{left:37px}.tear.r{right:37px}
+.catface.happy .mouth{width:20px;height:16px;border:4px solid #3a1626;border-top:none;border-radius:0 0 50% 50%;background:#ff9bc3}
+.catface.happy .eye{height:4px;border-radius:2px;top:60px}
+.catface.happy .tear{display:none}
+.sparkles{position:relative;width:0;height:0;margin:0 auto}
+.spark{position:absolute;width:13px;height:13px;background:#ffc9e3;transform:rotate(45deg);box-shadow:0 0 10px #ff1494;animation:sparkle 1.6s ease-in-out infinite}
+.spark:nth-child(1){top:-120px;left:-60px;animation-delay:0s}
+.spark:nth-child(2){top:-130px;left:50px;animation-delay:.3s}
+.spark:nth-child(3){top:-40px;left:-95px;animation-delay:.6s}
+.spark:nth-child(4){top:-30px;left:85px;animation-delay:.9s}
+@keyframes sparkle{0%,100%{opacity:.3;transform:rotate(45deg) scale(.7)}50%{opacity:1;transform:rotate(45deg) scale(1.15)}}
+
+.happyScene{position:fixed;inset:0;display:none;place-items:center;z-index:50;
+background:radial-gradient(circle at 50% 48%,#ff149466,transparent 34%),
+linear-gradient(145deg,#080006,#26000f 52%,#72003f);overflow:hidden}
+.happyScene.show{display:grid;animation:happyIn .8s ease forwards}
+@keyframes happyIn{0%{opacity:0;transform:scale(1.04)}100%{opacity:1;transform:scale(1)}}
+.happyScene .happyWrap{width:min(92vw,900px);text-align:center;position:relative;z-index:2}
+.happyScene h1{font-size:clamp(38px,7vw,78px);margin:0 0 14px;
+text-shadow:0 0 12px #fff,0 0 30px #ff1494,0 0 70px #ff1494}
+.happyScene p{font-size:clamp(18px,3vw,27px);margin:0 0 24px;text-shadow:0 0 18px #ff1494}
+.happyVideo{width:min(88vw,760px);max-height:68vh;object-fit:cover;border:1px solid #ff70bd88;
+border-radius:24px;box-shadow:0 0 45px #ff149455,0 25px 70px #0009;background:#090007}
+.happyScene .burst{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.happyScene .burst i{position:absolute;width:8px;height:8px;border-radius:50%;background:#ff8dca;
+box-shadow:0 0 16px #ff1494;animation:burstFloat 4s linear infinite;opacity:0}
+@keyframes burstFloat{0%{transform:translateY(110vh) scale(.4);opacity:0}
+12%{opacity:1}100%{transform:translateY(-20vh) scale(1.2);opacity:0}}
+
+.fireworks{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1}
+.firework{position:absolute;left:var(--x);top:var(--y);width:6px;height:6px;border-radius:50%;
+background:#ffd7ef;box-shadow:0 0 12px #ff1494,0 0 28px #ff70bd;animation:fireworkBurst 1.5s ease-out infinite;
+animation-delay:var(--delay);opacity:0}
+@keyframes fireworkBurst{
+0%{transform:translate(0,0) scale(.2);opacity:0}
+12%{opacity:1}
+70%{opacity:1}
+100%{transform:translate(var(--dx),var(--dy)) scale(.05);opacity:0}
+}
+.firework::before,.firework::after{content:"";position:absolute;left:50%;top:50%;width:4px;height:4px;border-radius:50%;
+background:#fff;box-shadow:0 0 12px #fff}
+
+.celebration{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1}
+.celebration .rocket{position:absolute;bottom:-8vh;left:var(--left);width:4px;height:85px;
+background:linear-gradient(to top,transparent,#fff,#ff7bc4);box-shadow:0 0 10px #ff1494;
+animation:rocketUp var(--dur) ease-out infinite;animation-delay:var(--delay);opacity:0}
+@keyframes rocketUp{
+0%{transform:translate(0,0) scale(.5);opacity:0}
+12%{opacity:1}
+70%{opacity:1}
+100%{transform:translate(var(--tx),var(--ty)) scale(1);opacity:0}
+}
+.celebration .burst2{position:absolute;left:var(--bx);top:var(--by);width:10px;height:10px;
+border-radius:50%;background:#fff;box-shadow:0 0 12px #fff,0 0 26px #ff1494;
+animation:celebrateBurst 2.2s ease-out infinite;animation-delay:var(--bd);opacity:0}
+@keyframes celebrateBurst{
+0%{transform:scale(.15);opacity:0}
+8%{opacity:1}
+55%{transform:scale(1);opacity:1}
+100%{transform:scale(2.2);opacity:0}
+}
+
+.cuteGallery{width:min(88vw,760px);display:flex;justify-content:center;align-items:center;gap:18px;
+margin:20px auto 0;flex-wrap:wrap}
+.cuteCard{width:210px;height:185px;border:1px solid #ff70bd88;border-radius:26px;
+background:linear-gradient(145deg,#ffb6dc22,#ff149422);box-shadow:0 0 28px #ff149433,0 18px 35px #0008;
+display:grid;place-items:center;position:relative;overflow:hidden;animation:cuteFloat 3.2s ease-in-out infinite}
+.cuteCard:nth-child(2){animation-delay:.35s;transform:translateY(8px)}
+.cuteCard:nth-child(3){animation-delay:.7s}
+.cuteCard::before{content:"";position:absolute;width:120px;height:120px;border-radius:50%;
+background:#ff70bd22;filter:blur(20px);top:25px;left:45px}
+.cuteArt{position:relative;z-index:2;font-size:88px;filter:drop-shadow(0 0 15px #ff149488)}
+.cuteHeart{position:absolute;right:18px;top:14px;font-size:25px;animation:heartPop 1.5s ease-in-out infinite}
+.cuteSpark{position:absolute;left:18px;bottom:18px;font-size:20px;animation:sparkTwinkle 1.4s ease-in-out infinite}
+@keyframes cuteFloat{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-10px) rotate(1deg)}}
+@keyframes heartPop{0%,100%{transform:scale(.85);opacity:.65}50%{transform:scale(1.15);opacity:1}}
+@keyframes sparkTwinkle{0%,100%{opacity:.35;transform:scale(.8) rotate(0)}50%{opacity:1;transform:scale(1.2) rotate(12deg)}}
+@media(max-width:700px){.cuteCard{width:155px;height:145px}.cuteArt{font-size:65px}}
+</style>
+</head>
+<body>
+<div class="scene" id="page1">
+<div class="hearts" id="hearts"></div>
+<div class="start" id="startBox">
+<div class="title">មនុស្សជាទីស្រឡាញ់របស់បង😘❤️</div>
+<button id="start">ចាប់ផ្ដើម ✦</button>
+</div>
+</div>
+
+<canvas class="count" id="count"></canvas>
+
+<div class="letterScene" id="letterScene"><div class="hearts"></div>
+<div style="text-align:center">
+<div class="envelope" id="envelope">
+<div class="paper"><p>សួស្តីមនុស្សជាទីស្រឡាញ់របស់បង😘❤️<br>បងមានអ្វីចង់ឱ្យអូនមើលមួយ</p></div>
+<div class="body"></div><div class="flap"></div><div class="seal">♥</div>
+</div>
+<button class="continue" id="continue">បន្ត ✦</button>
+</div>
+</div>
+
+<div class="sorryScene" id="s3"><div class="hearts"></div><div>
+ <div class="scriptTitle title" id="s3title"></div>
+ <div class="letterText" id="s3text">ជាដំបូងបងចង់សុំទោសអូនខ្លាំងមែនទែនដែលកន្លងមកបងធ្វើឲ្យអូនអត់សប្បាយចិត្តអូនយំក៏ដូចជាពេលខ្លះអូនខឹងបងអូនអន់ចិត្តជាមួយនឹងបង។<br><br>ប៉ុន្តែលើកលែងទោសឲ្យបងក៏ដូចជាអូននៅតែស្រឡាញ់បងដូចដើម។<br><br>បងពិតជាមានសំណាងខ្លាំងមែនទែនដែលបានអូនធ្វើជាគូរជីវិត😘💖💞</div>
+ <button id="s3btn" style="display:none">បន្ត ✦</button>
+</div></div>
+
+<div class="sorryScene" id="s4"><div class="hearts"></div><div>
+ <div class="scriptTitle title" id="s4title"></div>
+ <div class="catface" id="s4face"><span class="eye l"></span><span class="eye r"></span><span class="tear l"></span><span class="tear r"></span><span class="blush l"></span><span class="blush r"></span><span class="mouth"></span></div>
+ <div class="choices">
+  <button id="s4yes">បាទ/ចាស ✦</button>
+  <button class="secondary" id="s4wait">ខ្ញុំត្រូវការពេលបន្ថែម</button>
+ </div>
+</div></div>
+
+<div class="sorryScene" id="s5"><div class="hearts"></div><div>
+ <div class="scriptTitle title" id="s5title"></div>
+ <div class="letterText" id="s5text">តាំងពីមានវត្តមានអូនមកបងមិនដែលគិតថាចង់មានអ្នកផ្សេងទៀតឡើយ។ហើយតាំងពីមានអូនមកបងពិតជាមានអារម្មណ៍ល្អហើយស្រស់ស្រាយនិងកក់ក្ដៅក្នុងជីវិតខ្លាំងមែនទែន។និយាយឲ្យរួមទៅទោះបីជាយើងជួបរឿងអ្វីក៏ដោយប៉ុន្តែចំពោះក្ដីស្រឡាញ់របស់បងគឺបងស្រឡាញ់អូនខ្លាំងណាស់ខ្លាំងលើសពីអ្វីគ្រប់យ៉ាងទាំងអស់។</div>
+ <button id="s5btn" style="margin-top:28px">បន្ត ✦</button>
+</div></div>
+
+<div class="sorryScene" id="s6"><div class="hearts"></div><div>
+ <div class="scriptTitle title" id="s6title"></div>
+ <button id="s6btn">យល់ព្រមបងសម្លាញ់💖💞</button>
+</div></div>
+
+<script>
+const heartLayers=document.querySelectorAll(".hearts");
+heartLayers.forEach(hearts=>{
+ for(let i=0;i<28;i++){let h=document.createElement("span");h.className="heart";h.textContent="♥";
+ h.style.left=Math.random()*100+"%";h.style.fontSize=10+Math.random()*25+"px";
+ h.style.animationDuration=7+Math.random()*8+"s";h.style.animationDelay=-Math.random()*12+"s";
+ hearts.appendChild(h)}
+});
+const start=document.getElementById("start"),box=document.getElementById("startBox");
+const page1=document.getElementById("page1"),letterScene=document.getElementById("letterScene");
+const envelope=document.getElementById("envelope"),cont=document.getElementById("continue");
+
+/* ---------- particle counting effect (matches reference video) ---------- */
+const countCanvas=document.getElementById("count");
+const cctx=countCanvas.getContext("2d");
+let DPR=Math.min(window.devicePixelRatio||1,2);
+
+function resizeCountCanvas(){
+ DPR=Math.min(window.devicePixelRatio||1,2);
+ countCanvas.width=window.innerWidth*DPR;
+ countCanvas.height=window.innerHeight*DPR;
+ countCanvas.style.width=window.innerWidth+"px";
+ countCanvas.style.height=window.innerHeight+"px";
+ cctx.setTransform(DPR,0,0,DPR,0,0);
+}
+window.addEventListener("resize",resizeCountCanvas);
+resizeCountCanvas();
+
+function makeSprite(color){
+ const s=32,c=document.createElement("canvas");c.width=s;c.height=s;
+ const g=c.getContext("2d").createRadialGradient(s/2,s/2,0,s/2,s/2,s/2);
+ g.addColorStop(0,color);g.addColorStop(.35,color);g.addColorStop(1,"rgba(255,20,148,0)");
+ const ictx=c.getContext("2d");ictx.fillStyle=g;ictx.beginPath();ictx.arc(s/2,s/2,s/2,0,Math.PI*2);ictx.fill();
+ return c;
+}
+const spritePink=makeSprite("rgba(255,111,192,1)"),spriteWhite=makeSprite("rgba(255,235,246,1)");
+
+const N=460;
+let particles=[];
+
+function sampleTextPoints(text,fontSize,num){
+ const w=Math.round(fontSize*1.5),h=Math.round(fontSize*1.5);
+ const off=document.createElement("canvas");off.width=w;off.height=h;
+ const octx=off.getContext("2d");
+ octx.fillStyle="#fff";octx.font=`900 ${fontSize}px Arial`;
+ octx.textAlign="center";octx.textBaseline="middle";
+ octx.fillText(text,w/2,h/2);
+ const data=octx.getImageData(0,0,w,h).data;
+ const raw=[];let minX=1e9,maxX=-1e9,minY=1e9,maxY=-1e9;
+ const step=3;
+ for(let y=0;y<h;y+=step){
+  for(let x=0;x<w;x+=step){
+   if(data[(y*w+x)*4+3]>120){
+    const rx=x-w/2,ry=y-h/2;
+    raw.push({x:rx,y:ry});
+    if(rx<minX)minX=rx; if(rx>maxX)maxX=rx;
+    if(ry<minY)minY=ry; if(ry>maxY)maxY=ry;
+   }
+  }
+ }
+ for(let i=raw.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));const t=raw[i];raw[i]=raw[j];raw[j]=t}
+ const pts=[];
+ for(let i=0;i<num;i++){
+  const base=raw[i%raw.length]||{x:0,y:0};
+  pts.push({x:base.x+(Math.random()-.5)*2,y:base.y+(Math.random()-.5)*2});
+ }
+ return {points:pts,bbox:{minX,maxX,minY,maxY}};
+}
+
+function rectOutlinePoints(bbox,num,pad){
+ const x0=bbox.minX-pad,x1=bbox.maxX+pad,y0=bbox.minY-pad,y1=bbox.maxY+pad;
+ const w=x1-x0,h=y1-y0,perimeter=2*(w+h);
+ const pts=[];
+ for(let i=0;i<num;i++){
+  let d=(i/num)*perimeter,x,y;
+  if(d<w){x=x0+d;y=y0}
+  else if(d<w+h){x=x1;y=y0+(d-w)}
+  else if(d<2*w+h){x=x1-(d-w-h);y=y1}
+  else {x=x0;y=y1-(d-2*w-h)}
+  pts.push({x,y});
+ }
+ return pts;
+}
+
+function centerDotPoints(num){
+ const pts=[];
+ for(let i=0;i<num;i++)pts.push({x:(Math.random()-.5)*6,y:(Math.random()-.5)*6});
+ return pts;
+}
+
+function lerp(a,b,t){return a+(b-a)*t}
+function easeInOutQuad(t){return t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2}
+function easeOutBack(t){const c1=1.70158,c3=c1+1;return 1+c3*Math.pow(t-1,3)+c1*Math.pow(t-1,2)}
+
+function renderParticles(){
+ cctx.clearRect(0,0,window.innerWidth,window.innerHeight);
+ cctx.globalCompositeOperation="lighter";
+ const cx=window.innerWidth/2,cy=window.innerHeight/2;
+ for(const p of particles){
+  const s=p.r*8;
+  cctx.drawImage(p.sprite,cx+p.x-s/2,cy+p.y-s/2,s,s);
+ }
+ cctx.globalCompositeOperation="source-over";
+}
+
+function morphParticles(fromPts,toPts,duration,ease,stagger){
+ return new Promise(resolve=>{
+  const start=performance.now();
+  function frame(now){
+   const elapsed=now-start;
+   let allDone=true;
+   for(let i=0;i<particles.length;i++){
+    const p=particles[i],delay=stagger?p.seed*stagger:0;
+    let t=(elapsed-delay)/duration;
+    if(t<0){t=0;allDone=false} else if(t>=1){t=1} else {allDone=false}
+    const e=ease(t);
+    p.x=lerp(fromPts[i].x,toPts[i].x,e);
+    p.y=lerp(fromPts[i].y,toPts[i].y,e);
+   }
+   renderParticles();
+   if(!allDone)requestAnimationFrame(frame);else resolve();
+  }
+  requestAnimationFrame(frame);
+ });
+}
+
+function holdParticles(pts,duration){
+ return new Promise(resolve=>{
+  const start=performance.now();
+  function frame(now){
+   const elapsed=now-start;
+   for(let i=0;i<particles.length;i++){
+    const p=particles[i],jt=now/260+p.seed*10;
+    p.x=pts[i].x+Math.sin(jt)*1.6;
+    p.y=pts[i].y+Math.cos(jt*1.3)*1.6;
+   }
+   renderParticles();
+   if(elapsed<duration)requestAnimationFrame(frame);else resolve();
+  }
+  requestAnimationFrame(frame);
+ });
+}
+
+function delay(ms){return new Promise(r=>setTimeout(r,ms))}
+
+async function runCount(){
+ countCanvas.style.opacity="1";
+ countCanvas.style.display="block";
+ const digits=["1","2","3"];
+ const fontSize=Math.min(window.innerWidth,window.innerHeight)*0.55;
+ particles=Array.from({length:N},()=>({
+  x:(Math.random()-.5)*6,y:(Math.random()-.5)*6,seed:Math.random(),
+  r:1.3+Math.random()*1.7,sprite:Math.random()<0.18?spriteWhite:spritePink
+ }));
+ let current=particles.map(p=>({x:p.x,y:p.y}));
+ for(let i=0;i<digits.length;i++){
+  const {points:digitPts,bbox}=sampleTextPoints(digits[i],fontSize,N);
+  const outlinePts=rectOutlinePoints(bbox,N,44);
+  await morphParticles(current,outlinePts,190,easeInOutQuad,40);
+  current=outlinePts;
+  await morphParticles(current,digitPts,300,easeOutBack,60);
+  current=digitPts;
+  await holdParticles(digitPts,i===digits.length-1?520:420);
+  if(i<digits.length-1){
+   const dotPts=centerDotPoints(N);
+   await morphParticles(current,dotPts,190,easeInOutQuad,40);
+   current=dotPts;
+  }
+ }
+ countCanvas.style.opacity="0";
+ await delay(240);
+ countCanvas.style.display="none";
+ countCanvas.style.opacity="1";
+}
+/* ---------- end particle counting effect ---------- */
+
+start.onclick=async()=>{
+ box.classList.add("fade");setTimeout(()=>box.style.display="none",400);
+ await runCount();
+ page1.style.display="none";letterScene.style.display="grid";
+};
+envelope.onclick=()=>{envelope.classList.add("open");document.body.classList.add("letterOpen")};
+
+/* ---------- page 2: "I'm sorry" flow ---------- */
+function show(id){document.getElementById(id).style.display="grid"}
+function hide(id){document.getElementById(id).style.display="none"}
+function typeWriter(el,text,speed){
+ return new Promise(resolve=>{
+  el.textContent="";let i=0;
+  const t=setInterval(()=>{el.textContent+=text[i];i++;if(i>=text.length){clearInterval(t);resolve()}},speed||45);
+ });
+}
+cont.onclick=async()=>{
+ letterScene.style.display="none";show("s3");
+ const s3text=document.getElementById("s3text");
+ s3text.classList.add("pop");
+ await typeWriter(document.getElementById("s3title"),"បងសុំទោស",55);
+ document.getElementById("s3btn").style.display="inline-block";
+};
+document.getElementById("s3btn").onclick=async()=>{
+ hide("s3");show("s4");
+ await typeWriter(document.getElementById("s4title"),"តើអូនព្រមលើកលែងទោសឲ្យបងទេ?",55);
+};
+document.getElementById("s4wait").onclick=()=>{hide("s4");hide("s3");page1.style.display="grid";box.style.display="block";box.classList.remove("fade")};
+document.getElementById("s4yes").onclick=async()=>{
+ hide("s4");show("s5");
+ const s5text=document.getElementById("s5text");
+ s5text.classList.add("pop");
+ await typeWriter(document.getElementById("s5title"),"បងពិតជាសំណាងណាស់",55);
+};
+document.getElementById("s5btn").onclick=async()=>{
+ hide("s5");show("s6");
+ await typeWriter(document.getElementById("s6title"),"សន្យាជាមួយគ្នាបានទេថានឹងនៅស្រឡាញ់គ្នារហូតទោះបីជាយើងជួបឧបសគ្គក៏ដូចជាឈ្លោះគ្នាយ៉ាងណាក៏ដោយប៉ុន្តែយើងនៅតែនៅជាមួយគ្នាស្រឡាញ់គ្នាជារៀងរហូត?",35);
+};
+document.getElementById("s6btn").onclick=()=>{
+ hide("s6");hide("s5");hide("s4");hide("s3");letterScene.style.display="none";
+ const happy=document.getElementById("happyScene"); happy.classList.add("show");
+ const burst=document.getElementById("happyBurst");
+ for(let i=0;i<42;i++){const s=document.createElement("i");s.style.left=Math.random()*100+"%";
+ s.style.animationDelay=(-Math.random()*4)+"s";s.style.animationDuration=(3+Math.random()*3)+"s";
+ s.style.transform="scale("+(0.5+Math.random()*1.4)+")";burst.appendChild(s)}
+ const vid=document.getElementById("happyVideo"); vid.currentTime=0; vid.play().catch(()=>{});
+ const ca=document.getElementById("celebration");
+ for(let i=0;i<18;i++){
+   const r=document.createElement("span"); r.className="rocket";
+   r.style.setProperty("--left",(4+Math.random()*92)+"%");
+   r.style.setProperty("--tx",(Math.random()*220-110)+"px");
+   r.style.setProperty("--ty",(-45-Math.random()*55)+"vh");
+   r.style.setProperty("--dur",(1.4+Math.random()*1.6)+"s");
+   r.style.setProperty("--delay",(Math.random()*2)+"s");
+   ca.appendChild(r);
+ }
+ for(let i=0;i<20;i++){
+   const b=document.createElement("span"); b.className="burst2";
+   b.style.setProperty("--bx",(5+Math.random()*90)+"%");
+   b.style.setProperty("--by",(8+Math.random()*55)+"%");
+   b.style.setProperty("--bd",(Math.random()*2)+"s");
+   ca.appendChild(b);
+ }
+
+ const fw=document.getElementById("fireworks");
+ for(let i=0;i<16;i++){
+   const f=document.createElement("span"); f.className="firework";
+   const x=8+Math.random()*84, y=12+Math.random()*55;
+   const angle=Math.random()*Math.PI*2, dist=70+Math.random()*150;
+   f.style.setProperty("--x",x+"%");
+   f.style.setProperty("--y",y+"%");
+   f.style.setProperty("--dx",Math.cos(angle)*dist+"px");
+   f.style.setProperty("--dy",Math.sin(angle)*dist+"px");
+   f.style.setProperty("--delay",(Math.random()*1.8)+"s");
+   fw.appendChild(f);
+ }
+};
+</script>
+
+<div class="happyScene" id="happyScene">
+  <div class="celebration" id="celebration"></div>
+  <div class="fireworks" id="fireworks"></div>
+  <div class="burst" id="happyBurst"></div>
+  <div class="happyWrap">
+    <h1>យេស៎!!! 🎉💖</h1>
+    <p>បងពិតជាស្រឡាញ់អូននៅខ្លាំងណាស់អូនសម្លាញ់ចិត្តបង ❤️</p>
+    <div class="cuteGallery" aria-label="Cute romantic pictures">
+      <div class="cuteCard"><div class="cuteArt">🐰💗</div><div class="cuteHeart">💖</div><div class="cuteSpark">✨</div></div>
+      <div class="cuteCard"><div class="cuteArt">🐱💕</div><div class="cuteHeart">💞</div><div class="cuteSpark">🌸</div></div>
+      <div class="cuteCard"><div class="cuteArt">🧸❤️</div><div class="cuteHeart">💗</div><div class="cuteSpark">✨</div></div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>
